@@ -1288,7 +1288,7 @@ static NSImage *_brImage;
 		else
 			sshOptions = [[NSUserDefaults standardUserDefaults] sshOptions];
 
-		NSString *instanceIpAddress = (instance.ipAddress == (NSString *)[NSNull null] ? instance.privateIpAddress : instance.ipAddress);
+        NSString *instanceIpAddress = [instance.ipAddress length] > 0 ? instance.ipAddress: instance.privateIpAddress;
 
         NSString *instanceAddress = [[NSUserDefaults standardUserDefaults] isUsingPublicDNS] ? instance.dnsName : instanceIpAddress;
 
