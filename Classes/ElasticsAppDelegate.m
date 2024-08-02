@@ -870,7 +870,7 @@ static NSImage *_brImage;
         [menu addItem:[self infoItemWithLabel:@"Autoscaling Group" info:instance.autoscalingGroupName action:NULL tooltip:nil]];
 	[menu addItem:[self infoItemWithLabel:@"State" info:instance.instanceState.name action:NULL tooltip:nil]];
 
-	if ([instance.ipAddress length] > 0) {
+	if ([instance.ipAddress length] > 0 || [instance.privateIpAddress length] > 0) {
 		[menu addItem:[NSMenuItem separatorItem]];
 		[menu addItem:[self titleItemWithTitle:@"NETWORKING"]];
 		[menu addItem:[self infoItemWithLabel:@"Public IP" info:instance.ipAddress action:@selector(copyToPasteboardAction:) tooltip:@"Copy Public IP"]];
@@ -1288,7 +1288,9 @@ static NSImage *_brImage;
 		else
 			sshOptions = [[NSUserDefaults standardUserDefaults] sshOptions];
 
-        NSString *instanceAddress = [[NSUserDefaults standardUserDefaults] isUsingPublicDNS] ? instance.dnsName : instance.ipAddress;
+		NSString *instanceIpAddress = (instance.ipAddress == (NSString *)[NSNull null] ? instance.privateIpAddress : instance.ipAddress);
+
+        NSString *instanceAddress = [[NSUserDefaults standardUserDefaults] isUsingPublicDNS] ? instance.dnsName : instanceIpAddress;
 
 		NSString *cmd = @"ssh";
 
