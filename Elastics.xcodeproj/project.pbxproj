@@ -89,6 +89,7 @@
 		C3EA80F213E1702A00FFFF7F /* US.png in Resources */ = {isa = PBXBuildFile; fileRef = C3EA80EE13E1702A00FFFF7F /* US.png */; };
 		C3F19E6E12C60E87001AB554 /* EC2Monitoring.m in Sources */ = {isa = PBXBuildFile; fileRef = C3F19E6D12C60E87001AB554 /* EC2Monitoring.m */; };
 		C3F1A65E12C7A7EF001AB554 /* Preferences.m in Sources */ = {isa = PBXBuildFile; fileRef = C3F1A65D12C7A7EF001AB554 /* Preferences.m */; };
+		D74BF8D32F72A7790058136D /* AWSProfileManager.m in Sources */ = {isa = PBXBuildFile; fileRef = D74BF8D22F72A7790058136D /* AWSProfileManager.m */; };
 		DCEF0361AD65D20BF1B770A3 /* EC2RebootInstancesRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = DCEF0CF79D0E0E4C5A5997F9 /* EC2RebootInstancesRequest.m */; };
 		DCEF0A5CC2078D5915BEC1AA /* EC2StopInstancesRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = DCEF09A6247B5923B048F2CD /* EC2StopInstancesRequest.m */; };
 		DCEF0AC6DB83A472566C51CD /* EC2StartInstancesRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = DCEF016404EBCB2A32BF9FDE /* EC2StartInstancesRequest.m */; };
@@ -260,6 +261,8 @@
 		C3F1A54B12C78F98001AB554 /* ElasticsPreferences.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ElasticsPreferences.xcodeproj; path = ElasticsPreferences/ElasticsPreferences.xcodeproj; sourceTree = "<group>"; };
 		C3F1A65C12C7A7EF001AB554 /* Preferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Preferences.h; path = ElasticsPreferences/Classes/Preferences.h; sourceTree = SOURCE_ROOT; };
 		C3F1A65D12C7A7EF001AB554 /* Preferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Preferences.m; path = ElasticsPreferences/Classes/Preferences.m; sourceTree = SOURCE_ROOT; };
+		D74BF8D12F72A7790058136D /* AWSProfileManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AWSProfileManager.h; sourceTree = "<group>"; };
+		D74BF8D22F72A7790058136D /* AWSProfileManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AWSProfileManager.m; sourceTree = "<group>"; };
 		DCEF016404EBCB2A32BF9FDE /* EC2StartInstancesRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EC2StartInstancesRequest.m; sourceTree = "<group>"; };
 		DCEF020DC45A626C9657D770 /* EC2StopInstancesResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EC2StopInstancesResponse.h; sourceTree = "<group>"; };
 		DCEF0531207CD24D1B63B86C /* EC2StopInstancesResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EC2StopInstancesResponse.m; sourceTree = "<group>"; };
@@ -293,6 +296,8 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				D74BF8D12F72A7790058136D /* AWSProfileManager.h */,
+				D74BF8D22F72A7790058136D /* AWSProfileManager.m */,
 				C3D1DB3F12DB3471005E576A /* Constants.h */,
 				C3D1DB4012DB3471005E576A /* Constants.m */,
 				256AC3D80F4B6AC300CF3369 /* ElasticsAppDelegate.h */,
@@ -683,6 +688,7 @@
 				C32C295E12C0C60900F2C136 /* AWSRequest.m in Sources */,
 				C32C295F12C0C60900F2C136 /* NSData+Base64.m in Sources */,
 				C32C296012C0C60900F2C136 /* NSString+HMAC-SHA1.m in Sources */,
+				D74BF8D32F72A7790058136D /* AWSProfileManager.m in Sources */,
 				C32C296112C0C60900F2C136 /* NSString+URLEncoding.m in Sources */,
 				C32C296412C0C60900F2C136 /* EC2DescribeInstancesRequest.m in Sources */,
 				C32C296A12C0C60900F2C136 /* EC2DescribeInstancesResponse.m in Sources */,

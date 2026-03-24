@@ -24,6 +24,7 @@ NSString *const kAWSRegionOption				= @"AWSRegion";
 NSString *const kAWSServiceOption				= @"AWSService";
 NSString *const kAWSPathOption					= @"AWSPath";
 NSString *const kAWSUseSSLOption				= @"AWSUseSSL";
+NSString *const kAWSSessionTokenOption			= @"AWSSessionToken";
 
 // Static variables
 static NSArray *_s_awsRegions;
@@ -215,6 +216,20 @@ static NSMutableDictionary *_s_awsRequestDefaultOptions;
 	return [_options setObject:[NSNumber numberWithBool:value] forKey:kAWSUseSSLOption];
 }
 
+- (NSString *)sessionToken
+{
+	NSString *result = [_options objectForKey:kAWSSessionTokenOption] ? [_options objectForKey:kAWSSessionTokenOption] : [_s_awsRequestDefaultOptions objectForKey:kAWSSessionTokenOption];
+	return result;
+}
+
+- (void)setSessionToken:(NSString *)value
+{
+	if (value)
+		[_options setObject:[[value copy] autorelease] forKey:kAWSSessionTokenOption];
+	else
+		[_options removeObjectForKey:kAWSSessionTokenOption];
+}
+
 - (NSString *)host
 {
 	NSAssert([self.service length] > 0, @"Empty service.");
@@ -383,6 +398,11 @@ static NSMutableDictionary *_s_awsRequestDefaultOptions;
 	[requestParameters setObject:@"2" forKey:@"SignatureVersion"];
 	[requestParameters setObject:self.apiVersion forKey:@"Version"];
 	[requestParameters setObject:[_startedAt iso8601String] forKey:@"Timestamp"];
+
+	// add security token for temporary credentials (SSO/STS)
+	if ([self.sessionToken length] > 0) {
+		[requestParameters setObject:self.sessionToken forKey:@"SecurityToken"];
+	}
 
 	// sign query and add signature parameter
 	NSString *signature = [self signatureForParameters:requestParameters method:method];

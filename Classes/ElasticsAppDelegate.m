@@ -11,6 +11,7 @@
 #import "ChartView.h"
 #import "Preferences.h"
 #import "AccountsManager.h"
+#import "AWSProfileManager.h"
 #import "Constants.h"
 
 //const CGFloat kActionItemTableWidth             = 180.;
@@ -1045,13 +1046,37 @@ static NSImage *_brImage;
 
 	if (account) {
 		[[NSUserDefaults standardUserDefaults] setAccountId:account.accountId];
-		[options setObject:account.accessKeyID forKey:kAWSAccessKeyIdOption];
-		[options setObject:account.secretAccessKey forKey:kAWSSecretAccessKeyOption];
+
+		if ([account.awsProfileName length] > 0) {
+			// Resolve credentials from AWS profile (supports both static and SSO profiles)
+			NSDictionary *profileCreds = [AWSProfileManager credentialsForProfile:account.awsProfileName];
+			if (profileCreds) {
+				[options setObject:[profileCreds objectForKey:kAWSProfileAccessKeyId] forKey:kAWSAccessKeyIdOption];
+				[options setObject:[profileCreds objectForKey:kAWSProfileSecretAccessKey] forKey:kAWSSecretAccessKeyOption];
+				NSString *sessionToken = [profileCreds objectForKey:kAWSProfileSessionToken];
+				if (sessionToken) {
+					[options setObject:sessionToken forKey:kAWSSessionTokenOption];
+				} else {
+					[options setObject:@"" forKey:kAWSSessionTokenOption];
+				}
+			} else {
+				NSLog(@"Failed to resolve credentials for AWS profile '%@'", account.awsProfileName);
+				[options setObject:@"" forKey:kAWSAccessKeyIdOption];
+				[options setObject:@"" forKey:kAWSSecretAccessKeyOption];
+				[options setObject:@"" forKey:kAWSSessionTokenOption];
+			}
+		} else {
+			// Use stored access key and secret (legacy/manual mode)
+			[options setObject:account.accessKeyID forKey:kAWSAccessKeyIdOption];
+			[options setObject:account.secretAccessKey forKey:kAWSSecretAccessKeyOption];
+			[options setObject:@"" forKey:kAWSSessionTokenOption];
+		}
 	}
 	else {
 		// reset credentials in API
 		[options setObject:@"" forKey:kAWSAccessKeyIdOption];
 		[options setObject:@"" forKey:kAWSSecretAccessKeyOption];
+		[options setObject:@"" forKey:kAWSSessionTokenOption];
 	}
 
 	// setup AWS region from user defaults

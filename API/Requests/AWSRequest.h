@@ -20,6 +20,7 @@ extern NSString *const kAWSRegionOption;
 extern NSString *const kAWSServiceOption;
 extern NSString *const kAWSPathOption;
 extern NSString *const kAWSUseSSLOption;
+extern NSString *const kAWSSessionTokenOption;
 
 @interface AWSRequest : NSObject {
 @private
@@ -51,6 +52,7 @@ extern NSString *const kAWSUseSSLOption;
 @property (nonatomic, copy) NSString *service;
 @property (nonatomic, copy) NSString *path;
 @property (nonatomic) BOOL useSSL;
+@property (nonatomic, copy) NSString *sessionToken;
 
 // Start async request
 - (BOOL)start;

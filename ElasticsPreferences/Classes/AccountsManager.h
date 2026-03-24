@@ -20,6 +20,7 @@
 - (OSStatus)addAccountWithName:(NSString *)name
                    accessKeyId:(NSString *)accessKeyId
                secretAccessKey:(NSString *)secretAccessKey
+                awsProfileName:(NSString *)awsProfileName
              sshPrivateKeyFile:(NSString *)sshPrivateKeyFile
                    sshUserName:(NSString *)sshUserName
                        sshPort:(NSUInteger)sshPort
@@ -29,6 +30,7 @@
                         withName:(NSString *)name
                      accessKeyId:(NSString *)accessKeyId
                  secretAccessKey:(NSString *)secretAccessKey
+                  awsProfileName:(NSString *)awsProfileName
                sshPrivateKeyFile:(NSString *)sshPrivateKeyFile
                      sshUserName:(NSString *)sshUserName
                          sshPort:(NSUInteger)sshPort

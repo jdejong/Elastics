@@ -18,6 +18,7 @@ extern NSString *const kAccountDidChangeNotification;
 	NSString			*_name;
 	NSString			*_accessKeyID;
 	NSString			*_secretAccessKey;
+	NSString			*_awsProfileName;
     NSInteger           _defaultRegion;
 	NSString			*_sshPrivateKeyFile;
 	NSString			*_sshUserName;
@@ -30,6 +31,7 @@ extern NSString *const kAccountDidChangeNotification;
                name:(NSString *)name
         accessKeyId:(NSString *)accessKeyId
     secretAccessKey:(NSString *)secretAccessKey
+     awsProfileName:(NSString *)awsProfileName
   sshPrivateKeyFile:(NSString *)sshPrivateKeyFile
         sshUserName:(NSString *)sshUserName
             sshPort:(NSUInteger)sshPort
@@ -41,6 +43,7 @@ extern NSString *const kAccountDidChangeNotification;
             name:(NSString *)name
      accessKeyId:(NSString *)accessKeyId
  secretAccessKey:(NSString *)secretAccessKey
+  awsProfileName:(NSString *)awsProfileName
 sshPrivateKeyFile:(NSString *)sshPrivateKeyFile
      sshUserName:(NSString *)sshUserName
          sshPort:(NSUInteger)sshPort
@@ -55,6 +58,7 @@ sshPrivateKeyFile:(NSString *)sshPrivateKeyFile
 @property (nonatomic, copy) NSString *name;
 @property (nonatomic, copy) NSString *accessKeyID;
 @property (nonatomic, copy) NSString *secretAccessKey;
+@property (nonatomic, copy) NSString *awsProfileName;
 @property (nonatomic, assign) NSInteger defaultRegion;
 @property (nonatomic, copy) NSString *sshPrivateKeyFile;
 @property (nonatomic, copy) NSString *sshUserName;

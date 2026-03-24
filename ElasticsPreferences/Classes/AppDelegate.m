@@ -38,12 +38,14 @@ static NSString *const kElasticsSendFeedbackURL = @"mailto:support@tundrabot.com
 - (void)preferencesShouldTerminate:(NSNotification *)notification;
 
 - (NSString *)_accountPanelNameValue;
+- (NSString *)_accountPanelProfileNameValue;
 - (NSString *)_accountPanelAccessKeyIDValue;
 - (NSString *)_accountPanelSecretAccessKeyValue;
 - (NSString *)_accountPanelSshPrivateKeyFileValue;
 - (NSString *)_accountPanelSshUserNameValue;
 - (NSUInteger)_accountPanelSshPortValue;
 - (NSString *)_accountPanelSshOptionsValue;
+- (void)_updateCredentialFieldsVisibility;
 
 @end
 
@@ -64,8 +66,12 @@ static NSString *const kElasticsSendFeedbackURL = @"mailto:support@tundrabot.com
 @synthesize accountPanel = _accountPanel;
 @synthesize accountPanelSaveButton = _accountPanelSaveButton;
 @synthesize accountPanelNameField = _accountPanelNameField;
+@synthesize accountPanelProfileNameField = _accountPanelProfileNameField;
+@synthesize accountPanelProfileNameLabel = _accountPanelProfileNameLabel;
 @synthesize accountPanelAccessKeyIdField = _accountPanelAccessKeyIdField;
+@synthesize accountPanelAccessKeyIdLabel = _accountPanelAccessKeyIdLabel;
 @synthesize accountPanelSecretAccessKeyField = _accountPanelSecretAccessKeyField;
+@synthesize accountPanelSecretAccessKeyLabel = _accountPanelSecretAccessKeyLabel;
 @synthesize accountPanelSshPrivateKeyFileField = _accountPanelSshPrivateKeyFileField;
 @synthesize accountPanelSshUserNameField = _accountPanelSshUserNameField;
 @synthesize accountPanelSshPortField = _accountPanelSshPortField;
@@ -265,10 +271,17 @@ static NSString *const kElasticsSendFeedbackURL = @"mailto:support@tundrabot.com
 {
     if ([[notification object] isKindOfClass:[NSTextField class]]) {
         NSTextField *obj = [notification object];
-        
-        if (obj == _accountPanelAccessKeyIdField || obj == _accountPanelSecretAccessKeyField) {
-            BOOL canSave = [[self _accountPanelAccessKeyIDValue] length] > 0 && [[self _accountPanelSecretAccessKeyValue] length] > 0;
-            [_accountPanelSaveButton setEnabled:canSave];
+
+        if (obj == _accountPanelProfileNameField) {
+            [self _updateCredentialFieldsVisibility];
+            BOOL hasProfile = [[self _accountPanelProfileNameValue] length] > 0;
+            BOOL hasKeys = [[self _accountPanelAccessKeyIDValue] length] > 0 && [[self _accountPanelSecretAccessKeyValue] length] > 0;
+            [_accountPanelSaveButton setEnabled:hasProfile || hasKeys];
+        }
+        else if (obj == _accountPanelAccessKeyIdField || obj == _accountPanelSecretAccessKeyField) {
+            BOOL hasProfile = [[self _accountPanelProfileNameValue] length] > 0;
+            BOOL hasKeys = [[self _accountPanelAccessKeyIDValue] length] > 0 && [[self _accountPanelSecretAccessKeyValue] length] > 0;
+            [_accountPanelSaveButton setEnabled:hasProfile || hasKeys];
         }
         else if (obj == _sshPortField || obj == _accountPanelSshPortField) {
             NSString *value = obj.stringValue;
@@ -346,6 +359,11 @@ enum {
 	return [[_accountPanelNameField stringValue] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 }
 
+- (NSString *)_accountPanelProfileNameValue
+{
+	return [[_accountPanelProfileNameField stringValue] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+}
+
 - (NSString *)_accountPanelAccessKeyIDValue
 {
 	return [[_accountPanelAccessKeyIdField stringValue] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
@@ -399,13 +417,14 @@ enum {
 				status = [_accountsManager addAccountWithName:[self _accountPanelNameValue]
                                                   accessKeyId:[self _accountPanelAccessKeyIDValue]
                                               secretAccessKey:[self _accountPanelSecretAccessKeyValue]
+                                               awsProfileName:[self _accountPanelProfileNameValue]
                                             sshPrivateKeyFile:[self _accountPanelSshPrivateKeyFileValue]
                                                   sshUserName:[self _accountPanelSshUserNameValue]
                                                       sshPort:[self _accountPanelSshPortValue]
                                                    sshOptions:[self _accountPanelSshOptionsValue]];
 				break;
 			}
-				
+
 			case kAccountActionEditAccount: {
 				NSUInteger selectionIndex = [_accountsController selectionIndex];
 
@@ -414,6 +433,7 @@ enum {
                                                            withName:[self _accountPanelNameValue]
                                                         accessKeyId:[self _accountPanelAccessKeyIDValue]
                                                     secretAccessKey:[self _accountPanelSecretAccessKeyValue]
+                                                     awsProfileName:[self _accountPanelProfileNameValue]
                                                   sshPrivateKeyFile:[self _accountPanelSshPrivateKeyFileValue]
                                                         sshUserName:[self _accountPanelSshUserNameValue]
                                                             sshPort:[self _accountPanelSshPortValue]
@@ -462,6 +482,7 @@ enum {
 	NSString *defaultSshOptions = [[NSUserDefaults standardUserDefaults] sshOptions];
 
 	[_accountPanelNameField setStringValue:@""];
+	[_accountPanelProfileNameField setStringValue:@""];
 	[_accountPanelAccessKeyIdField setStringValue:@""];
 	[_accountPanelSecretAccessKeyField setStringValue:@""];
 	[_accountPanelSshPrivateKeyFileField setStringValue:@""];
@@ -469,13 +490,15 @@ enum {
 	[_accountPanelSshPortField setStringValue:@""];
     [_accountPanelSshOptionsField setStringValue:@""];
 
+	[_accountPanelProfileNameField.cell setPlaceholderString:@"e.g. AWSAdministratorAccess-123456"];
 	[_accountPanelSshPrivateKeyFileField.cell setPlaceholderString:defaultSshPrivateKeyFile ? defaultSshPrivateKeyFile : @""];
 	[_accountPanelSshUserNameField.cell setPlaceholderString:defaultSshUserName ? defaultSshUserName : @"root"];
     [_accountPanelSshPortField.cell setPlaceholderString:defaultSshPort > 0 ? [NSString stringWithFormat:@"%zd", defaultSshPort] : @"22"];
     [_accountPanelSshOptionsField.cell setPlaceholderString:defaultSshOptions ? defaultSshOptions : @""];
 
+	[self _updateCredentialFieldsVisibility];
 	[_accountPanelSaveButton setEnabled:NO];
-	[_accountPanel makeFirstResponder:_accountPanelAccessKeyIdField];
+	[_accountPanel makeFirstResponder:_accountPanelProfileNameField];
     
 	[NSApp beginSheet:_accountPanel
 	   modalForWindow:[NSApp mainWindow]
@@ -500,6 +523,7 @@ enum {
         NSString *defaultSshOptions = [[NSUserDefaults standardUserDefaults] sshOptions];
 
 		[_accountPanelNameField setStringValue:account.name ? account.name : @""];
+		[_accountPanelProfileNameField setStringValue:account.awsProfileName ? account.awsProfileName : @""];
 		[_accountPanelAccessKeyIdField setStringValue:account.accessKeyID ? account.accessKeyID : @""];
 		[_accountPanelSecretAccessKeyField setStringValue:account.secretAccessKey ? account.secretAccessKey : @""];
 		[_accountPanelSshPrivateKeyFileField setStringValue:account.sshPrivateKeyFile ? account.sshPrivateKeyFile : @""];
@@ -507,13 +531,15 @@ enum {
 		[_accountPanelSshPortField setStringValue:account.sshPort > 0 ? [NSString stringWithFormat:@"%zd", account.sshPort] : @""];
 		[_accountPanelSshOptionsField setStringValue:account.sshOptions ? account.sshOptions : @""];
 
+		[_accountPanelProfileNameField.cell setPlaceholderString:@"e.g. AWSAdministratorAccess-123456"];
 		[_accountPanelSshPrivateKeyFileField.cell setPlaceholderString:defaultSshPrivateKeyFile ? defaultSshPrivateKeyFile : @""];
 		[_accountPanelSshUserNameField.cell setPlaceholderString:defaultSshUserName ? defaultSshUserName : @"root"];
 		[_accountPanelSshPortField.cell setPlaceholderString:defaultSshPort > 0 ? [NSString stringWithFormat:@"%zd", defaultSshPort] : @"22"];
         [_accountPanelSshOptionsField.cell setPlaceholderString:defaultSshOptions ? defaultSshOptions : @""];
 
+		[self _updateCredentialFieldsVisibility];
 		[_accountPanelSaveButton setEnabled:YES];
-		[_accountPanel makeFirstResponder:_accountPanelAccessKeyIdField];
+		[_accountPanel makeFirstResponder:_accountPanelProfileNameField];
 		
 		[NSApp beginSheet:_accountPanel
 		   modalForWindow:[NSApp mainWindow]
@@ -596,6 +622,19 @@ enum {
 {
     NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
     return !userDefaults.isRegionUSGovCloudActive || [userDefaults.activeRegions count] > 1;
+}
+
+#pragma mark - Credential fields visibility
+
+- (void)_updateCredentialFieldsVisibility
+{
+    BOOL hasProfile = [[self _accountPanelProfileNameValue] length] > 0;
+    BOOL hidden = hasProfile;
+
+    [_accountPanelAccessKeyIdField setHidden:hidden];
+    [_accountPanelAccessKeyIdLabel setHidden:hidden];
+    [_accountPanelSecretAccessKeyField setHidden:hidden];
+    [_accountPanelSecretAccessKeyLabel setHidden:hidden];
 }
 
 #pragma mark - Actions

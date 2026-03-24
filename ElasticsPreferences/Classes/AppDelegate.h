@@ -24,8 +24,12 @@
 	NSTextField			*_aboutCopyrightLabel;
 	NSPanel				*_accountPanel;
 	NSTextField			*_accountPanelNameField;
+	NSTextField			*_accountPanelProfileNameField;
+	NSTextField			*_accountPanelProfileNameLabel;
 	NSTextField			*_accountPanelAccessKeyIdField;
+	NSTextField			*_accountPanelAccessKeyIdLabel;
 	NSTextField			*_accountPanelSecretAccessKeyField;
+	NSTextField			*_accountPanelSecretAccessKeyLabel;
 	NSTextField			*_accountPanelSshPrivateKeyFileField;
 	NSTextField			*_accountPanelSshUserNameField;
 	NSTextField			*_accountPanelSshPortField;
@@ -57,8 +61,12 @@
 @property (assign) IBOutlet NSPanel *accountPanel;
 @property (assign) IBOutlet NSButton *accountPanelSaveButton;
 @property (assign) IBOutlet NSTextField *accountPanelNameField;
+@property (assign) IBOutlet NSTextField *accountPanelProfileNameField;
+@property (assign) IBOutlet NSTextField *accountPanelProfileNameLabel;
 @property (assign) IBOutlet NSTextField *accountPanelAccessKeyIdField;
+@property (assign) IBOutlet NSTextField *accountPanelAccessKeyIdLabel;
 @property (assign) IBOutlet NSTextField *accountPanelSecretAccessKeyField;
+@property (assign) IBOutlet NSTextField *accountPanelSecretAccessKeyLabel;
 @property (assign) IBOutlet NSTextField *accountPanelSshPrivateKeyFileField;
 @property (assign) IBOutlet NSTextField *accountPanelSshUserNameField;
 @property (assign) IBOutlet NSTextField *accountPanelSshPortField;

@@ -118,6 +118,7 @@
 - (OSStatus)addAccountWithName:(NSString *)name
                    accessKeyId:(NSString *)accessKeyId
                secretAccessKey:(NSString *)secretAccessKey
+                awsProfileName:(NSString *)awsProfileName
              sshPrivateKeyFile:(NSString *)sshPrivateKeyFile
                    sshUserName:(NSString *)sshUserName
                        sshPort:(NSUInteger)sshPort
@@ -130,11 +131,12 @@
 		maxAccountId = MAX(account.accountId, maxAccountId);
 	}];
 	NSInteger newAccountId = maxAccountId + 1;
-	
+
 	Account *newAccount = [Account accountWithID:newAccountId
 											name:name
 									 accessKeyId:accessKeyId
 								 secretAccessKey:secretAccessKey
+								  awsProfileName:awsProfileName
 							   sshPrivateKeyFile:sshPrivateKeyFile
 									 sshUserName:sshUserName
                                          sshPort:sshPort
@@ -152,17 +154,19 @@
                         withName:(NSString *)name
                      accessKeyId:(NSString *)accessKeyId
                  secretAccessKey:(NSString *)secretAccessKey
+                  awsProfileName:(NSString *)awsProfileName
                sshPrivateKeyFile:(NSString *)sshPrivateKeyFile
                      sshUserName:(NSString *)sshUserName
                          sshPort:(NSUInteger)sshPort
                       sshOptions:(NSString *)sshOptions
 {
     Account *account = [_accounts objectAtIndex:idx];
-    
+
     // keep old values for undo (TODO: is there a better way?)
     NSString *nameCopy = [account.name copy];
     NSString *accessKeyIDCopy = [account.accessKeyID copy];
     NSString *secretAccessKeyCopy = [account.secretAccessKey copy];
+    NSString *awsProfileNameCopy = [account.awsProfileName copy];
     NSString *sshPrivateKeyFileCopy = [account.sshPrivateKeyFile copy];
     NSString *sshUserNameCopy = [account.sshUserName copy];
     NSUInteger sshPortCopy = account.sshPort;
@@ -171,27 +175,30 @@
     account.name = name;
     account.accessKeyID = accessKeyId;
     account.secretAccessKey = secretAccessKey;
+    account.awsProfileName = awsProfileName;
     account.sshPrivateKeyFile = sshPrivateKeyFile;
     account.sshUserName = sshUserName;
     account.sshPort = sshPort;
     account.sshOptions = sshOptions;
 
     OSStatus status = [account save];
-    
+
     if (status != noErr) {
         // save failed, restore old values
         account.name = nameCopy;
         account.accessKeyID = accessKeyIDCopy;
         account.secretAccessKey = secretAccessKeyCopy;
+        account.awsProfileName = awsProfileNameCopy;
         account.sshPrivateKeyFile = sshPrivateKeyFileCopy;
         account.sshUserName = sshUserNameCopy;
         account.sshPort = sshPortCopy;
         account.sshOptions = sshOptionsCopy;
     }
-    
+
     [nameCopy release];
     [accessKeyIDCopy release];
     [secretAccessKeyCopy release];
+    [awsProfileNameCopy release];
     [sshPrivateKeyFileCopy release];
     [sshUserNameCopy release];
     [sshOptions release];

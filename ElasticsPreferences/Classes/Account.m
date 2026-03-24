@@ -23,6 +23,7 @@ NSString *const kAccountDidChangeNotification	= @"kAccountsDidChangeNotification
 @synthesize name = _name;
 @synthesize accessKeyID = _accessKeyID;
 @synthesize secretAccessKey = _secretAccessKey;
+@synthesize awsProfileName = _awsProfileName;
 @synthesize defaultRegion = _defaultRegion;
 @synthesize sshPrivateKeyFile = _sshPrivateKeyFile;
 @synthesize sshUserName = _sshUserName;
@@ -34,6 +35,7 @@ NSString *const kAccountDidChangeNotification	= @"kAccountsDidChangeNotification
                name:(NSString *)name
         accessKeyId:(NSString *)accessKeyId
     secretAccessKey:(NSString *)secretAccessKey
+     awsProfileName:(NSString *)awsProfileName
   sshPrivateKeyFile:(NSString *)sshPrivateKeyFile
         sshUserName:(NSString *)sshUserName
             sshPort:(NSUInteger)sshPort
@@ -43,6 +45,7 @@ NSString *const kAccountDidChangeNotification	= @"kAccountsDidChangeNotification
 								name:name
 						 accessKeyId:accessKeyId
 					 secretAccessKey:secretAccessKey
+					  awsProfileName:awsProfileName
 				   sshPrivateKeyFile:sshPrivateKeyFile
 						 sshUserName:sshUserName
                              sshPort:sshPort
@@ -59,6 +62,7 @@ NSString *const kAccountDidChangeNotification	= @"kAccountsDidChangeNotification
             name:(NSString *)name
      accessKeyId:(NSString *)accessKeyId
  secretAccessKey:(NSString *)secretAccessKey
+  awsProfileName:(NSString *)awsProfileName
 sshPrivateKeyFile:(NSString *)sshPrivateKeyFile
      sshUserName:(NSString *)sshUserName
          sshPort:(NSUInteger)sshPort
@@ -70,6 +74,7 @@ sshPrivateKeyFile:(NSString *)sshPrivateKeyFile
 		_name = [name copy];
 		_accessKeyID = [accessKeyId copy];
 		_secretAccessKey = [secretAccessKey copy];
+		_awsProfileName = [awsProfileName copy];
 		_defaultRegion = 0;
 		_sshPrivateKeyFile = [sshPrivateKeyFile copy];
 		_sshUserName = [_sshUserName copy];
@@ -77,7 +82,7 @@ sshPrivateKeyFile:(NSString *)sshPrivateKeyFile
         _sshOptions = [sshOptions copy];
 		_itemRef = NULL;
     }
-    
+
     return self;
 }
 
@@ -107,15 +112,24 @@ sshPrivateKeyFile:(NSString *)sshPrivateKeyFile
 											&data);
 		if (status == noErr) {
 			// attr.data is the Access Key Id and data is the password Secret Access Key
-			
+
 			TBRelease(_accessKeyID);
 			_accessKeyID = [[NSString alloc] initWithBytes:attrs[0].data length:attrs[0].length encoding:NSUTF8StringEncoding];
-			
+
 			TBRelease(_secretAccessKey);
 			_secretAccessKey = [[NSString alloc] initWithBytes:data length:length encoding:NSUTF8StringEncoding];
-			
+
 			[self _unarchiveGenericAttributes:[NSData dataWithBytes:attrs[1].data length:attrs[1].length]];
-			
+
+			// For profile-based accounts, the keychain stores placeholder values
+			// for access key and secret. Clear them since credentials are resolved at runtime.
+			if ([_awsProfileName length] > 0) {
+				TBRelease(_accessKeyID);
+				_accessKeyID = [@"" copy];
+				TBRelease(_secretAccessKey);
+				_secretAccessKey = [@"" copy];
+			}
+
 			SecKeychainItemFreeContent(&attributes, data);
 		}
 	}
@@ -127,6 +141,7 @@ sshPrivateKeyFile:(NSString *)sshPrivateKeyFile
 	[_name release];
 	[_accessKeyID release];
 	[_secretAccessKey release];
+	[_awsProfileName release];
 	[_sshPrivateKeyFile release];
 	[_sshUserName release];
     [_sshOptions release];
@@ -140,15 +155,20 @@ sshPrivateKeyFile:(NSString *)sshPrivateKeyFile
 
 - (OSStatus)save
 {
-	if (![_accessKeyID length] || ![_secretAccessKey length]) {
-		// we cannot save keychain item with blank account or password
+	if ([_awsProfileName length] == 0 && (![_accessKeyID length] || ![_secretAccessKey length])) {
+		// we cannot save keychain item with blank credentials unless using a profile
 		return errSecParam;
 	}
 
     const char *serviceNameUTF8		= [kElasticsSecServiceName UTF8String];
 	const char *titleUTF8			= [[self _keychainItemTitle]  UTF8String];
-	const char *accountUTF8			= [_accessKeyID UTF8String];
-	const char *passwordUTF8		= [_secretAccessKey UTF8String];
+
+	// For profile-based accounts, use profile name as the keychain account identifier
+	// and a placeholder for the password since keys are resolved at runtime
+	NSString *keychainAccount = [_awsProfileName length] > 0 ? _awsProfileName : _accessKeyID;
+	NSString *keychainPassword = [_awsProfileName length] > 0 ? @"aws-profile" : _secretAccessKey;
+	const char *accountUTF8			= [keychainAccount UTF8String];
+	const char *passwordUTF8		= [keychainPassword UTF8String];
 	NSData *genericAttributesData	= [self _archiveGenericAttributes];
 	
 	// set up the attribute vector for item create/update (each attribute consists of {tag, length, data})
@@ -312,6 +332,9 @@ sshPrivateKeyFile:(NSString *)sshPrivateKeyFile
 	if ([_name length] > 0) {
 		return _name;
 	}
+	else if ([_awsProfileName length] > 0) {
+		return _awsProfileName;
+	}
 	else if ([_accessKeyID length] > 0) {
 		if ([_accessKeyID length] > 10) {
 			return [NSString stringWithFormat:@"%@...%@",
@@ -331,11 +354,13 @@ sshPrivateKeyFile:(NSString *)sshPrivateKeyFile
             "    _accountId = %zd,\n"
             "    _name = %@,\n"
             "    _accessKeyID = %@,\n"
+            "    _awsProfileName = %@,\n"
             "    _itemRef = %p\n"
             "}",
             _accountId,
             _name,
             _accessKeyID,
+            _awsProfileName,
             _itemRef];
 }
 
@@ -344,6 +369,8 @@ sshPrivateKeyFile:(NSString *)sshPrivateKeyFile
 
 - (NSString *)_keychainItemTitle
 {
+	if ([_awsProfileName length] > 0)
+		return [NSString stringWithFormat:@"Elastics.profile.%@", _awsProfileName];
 	return [NSString stringWithFormat:@"Elastics.%@", _accessKeyID];
 }
 
@@ -351,6 +378,7 @@ sshPrivateKeyFile:(NSString *)sshPrivateKeyFile
 static NSString *const kAccountAttributeIDKey				= @"id";
 static NSString *const kAccountAttributeNameKey				= @"name";
 static NSString *const kAccountAttributeDefaultRegionKey	= @"defaultRegion";
+static NSString *const kAccountAwsProfileNameKey			= @"awsProfileName";
 static NSString *const kAccountSshPrivateKeyFileKey			= @"sshPrivateKeyFile";
 static NSString *const kAccountSshUserNameKey				= @"sshUserName";
 static NSString *const kAccountSshPortKey                   = @"sshPort";
@@ -362,6 +390,7 @@ static NSString *const kAccountSshOptionsKey                = @"sshOptions";
 								[NSNumber numberWithInteger:_accountId], kAccountAttributeIDKey,
 								_name, kAccountAttributeNameKey,
 								[NSNumber numberWithInteger:_defaultRegion], kAccountAttributeDefaultRegionKey,
+								_awsProfileName, kAccountAwsProfileNameKey,
 								_sshPrivateKeyFile, kAccountSshPrivateKeyFileKey,
 								_sshUserName, kAccountSshUserNameKey,
                                 [NSNumber numberWithInteger:_sshPort], kAccountSshPortKey,
@@ -383,6 +412,7 @@ static NSString *const kAccountSshOptionsKey                = @"sshOptions";
 		_accountId = [[attributes objectForKey:kAccountAttributeIDKey] integerValue];
 		_name = [[attributes objectForKey:kAccountAttributeNameKey] copy];
 		_defaultRegion = [[attributes objectForKey:kAccountAttributeDefaultRegionKey] integerValue];
+		_awsProfileName = [[attributes objectForKey:kAccountAwsProfileNameKey] copy];
 		_sshPrivateKeyFile = [[attributes objectForKey:kAccountSshPrivateKeyFileKey] copy];
 		_sshUserName = [[attributes objectForKey:kAccountSshUserNameKey] copy];
 		_sshPort = [[attributes objectForKey:kAccountSshPortKey] integerValue];
